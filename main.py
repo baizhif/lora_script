@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return render_template('mainui.html',train_info=t.output_info.replace('\n','\n<br/>'), task_count=f"当前任务数量{len(t.tasks)}")
+    return render_template('mainui.html',train_info=t.output_info, task_count=f"当前任务数量{len(t.tasks)}")
 
 @app.route('/favicon.ico',methods=['GET'])
 def getIco():
@@ -47,4 +47,4 @@ def addNewTask():
 
 if __name__ == '__main__':
     t = Tasks()
-    app.run(port=7860)
+    app.run(port=7860, debug=False)
