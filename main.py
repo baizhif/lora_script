@@ -28,8 +28,11 @@ def processUpload():
 
 @app.route('/newTask',methods=['POST'])
 def addNewTask():
-    cmd = parseTrain(request.form.to_dict())
-    return t.addTask(cmd)
+    try:
+        cmd = parseTrain(request.form.to_dict())
+        return t.addTask(cmd)
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     t = Tasks()
