@@ -161,7 +161,7 @@ class Tasks:
 
     def getOutput(self,p):
         for info in iter(p.stdout.readline, b''):
-            print(info.decode('gbk'),66)
+            print(info.decode('utf-8'),66)
 
     def uploadResults(self,key, name, repo_id, repo_type):
         if key:
