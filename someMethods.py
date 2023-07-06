@@ -149,6 +149,7 @@ class Tasks:
             while len(self.tasks) != 0:
                 staus = os.system(self.tasks[0])
                 print("状态",staus)
+                print(self.tasks[0])
                 self.uploadResults(self.tasks[0]["hugface_key"],self.tasks[0]["output_name"],self.tasks[0]["repo_id"],self.tasks[0]["repo_type"])
                 self.tasks.remove(self.tasks[0])
             self.isRunning = False
