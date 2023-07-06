@@ -6,6 +6,13 @@
     <title>webui for lora训练</title>
 </head>
 <body>
+
+    <style>
+        *{
+            font-family: 'Times New Roman', Times, serif;
+        }
+    </style>
+
     <div class="main">
         <iframe name="hide_iframe" id="hide_iframe" style="display: none;" title="隐藏页面"></iframe>
         <div style="border:1px solid #000000">
@@ -20,9 +27,7 @@
                 </li>
             </lo>
             
-        </div>
-
-        <div id="tc">{{task_count}}</div>
+        </div>    
 
         <form action="/newTask" method="post" target="hide_iframe">
             <div style="border:1px solid #000000">
@@ -64,7 +69,7 @@
                 <ol>
                     <li>
                         <label>模型保存名称</label> <br/>
-                        <label>output_name</label> <input type="text" name="output_name" value="Demo"/>
+                        <label>output_name</label> <input type="text" name="output_name" value="Demo" id="output_name"/>
                     </li>
                     <li>
                         <label>模型保存格式</label> <br/>
@@ -383,7 +388,8 @@
         </form>
         <button onclick="tasks_finshed_event()">任务结束后自动结束</button>
         <br/>
-        <div style="height:150px;overflow-y:auto" id="output"><pre>{{train_info}}</pre></div>    
+        <div id="tc">{{task_count}}</div>
+        <div style="height:150px;overflow-y:scroll;border:1px solid #000000;resize: vertical;position: relative;" id="output"><pre style="font-size:large;">{{train_info}}</pre></div>
     </div>
 
     <script>
@@ -405,7 +411,7 @@
                 if (task_count == '0') {
                     alert("已经开始训练了")
                 } else {
-                    alert("前面还有" + Number(task_count) -1 + "个任务, 已追加到任务列表中")
+                    alert("前面还有" + (Number(task_count) -1) + "个任务, 已追加到任务列表中")
                 }
             }
         }
@@ -446,7 +452,9 @@
             index = upload_path.value.search(/\d+_/)
             if (index !== -1) {
                 let train_data_dir = document.getElementById("train_data_dir")
+                let output_name = document.getElementById("output_name")
                 train_data_dir.value = upload_path.value.slice(0,index-1)
+                output_name.value = upload_path.value.slice(index).split('_')[1]
             }
           };
           ajax.send(fd);
