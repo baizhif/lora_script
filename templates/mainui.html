@@ -42,7 +42,7 @@
                     </li>
                     <li>
                         <label>训练数据集路径</label> <br/>
-                        <label>train_data_dir</label> <input type="text" name="train_data_dir" value="/kaggle/train"/>
+                        <label>train_data_dir</label> <input type="text" name="train_data_dir" value="/kaggle/train" id="train_data_dir"/>
                     </li>
                     <li>
                         <label>正则数据集化路径</label> <br/>
@@ -443,6 +443,11 @@
             files = null;
             fileInput.disabled = false;
             upload.disabled = true;
+            index = upload_path.value.search(/\d+_/)
+            if (index !== -1) {
+                let train_data_dir = document.getElementById("train_data_dir")
+                train_data_dir.value = upload_path.value.slice(0,index-1)
+            }
           };
           ajax.send(fd);
         }
