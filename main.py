@@ -31,13 +31,12 @@ def getTrainInfo():
 
 @app.route('/finished_evevt')
 def finishedEvevtProcess():
-    print("结束进程")
-    t.finishedProcess()
     if t.finished_close:
         t.finished_close = False
         return "自动结束已关闭"
     else:
         t.finished_close = True
+        t.finishedProcess()
         return "自动结束已开启"
 
 @app.route('/newTask',methods=['POST'])
