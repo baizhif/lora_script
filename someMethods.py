@@ -168,4 +168,4 @@ class Tasks:
             login(token=key)
             from huggingface_hub import HfApi
             api = HfApi()
-            [upload_file(file) for file in [root + file for root, folders, files in os.walk("/kaggle/working/output") for file in files]]
+            [upload_file(file) for file in [os.path.join(root, file) for root, folders, files in os.walk("/kaggle/working/output") for file in files]]
