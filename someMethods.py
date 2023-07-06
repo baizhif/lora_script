@@ -158,7 +158,6 @@ class Tasks:
             self.tasks.remove(self.tasks[0])
 
     def uploadResults(self,key, name, repo_id, repo_type):
-        print(666)
         if key:
             def upload_file(file):
                 file_name = os.path.basename(file)
