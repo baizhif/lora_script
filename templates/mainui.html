@@ -21,6 +21,9 @@
             </lo>
             
         </div>
+
+        <div id="tc">{{task_count}}</div>
+
         <form action="/newTask" method="post" target="hide_iframe">
             <div style="border:1px solid #000000">
                 <h4>设置训练用模型、图片</h4>
@@ -355,7 +358,7 @@
                 </ol>
             </div>
             
-            <div>
+            <div style="border:1px solid #000000">
                 <h4>抱脸仓库相关</h4>
                 <ol>
                     <li>
@@ -377,22 +380,57 @@
                 </ol>
             </div>
             <input type="button" value="提交" onclick="submit()" />
-        </form>    
+        </form>
+        <button onclick="tasks_finshed_event()">任务结束后自动结束</button>
+        <br/>
+        <div style="height:150px;overflow-y:auto" id="output">{{train_info}}</div>    
     </div>
 
     <script>
+        const tc = document.getElementById("tc")
+        const output = document.getElementById("output")
         const filesInput = document.getElementById("fileInput")
         const upload = document.getElementById("upload")
         const upload_path = document.getElementById("upload_path")
+
+        window.setInterval(getTrainInfo,5000);
+
+
         window.onload = function () {
             let iframe = document.getElementById("hide_iframe")
             iframe.onload = function () {
                 var doc = iframe.contentWindow.document;
-                var html = doc.body.innerHTML;
-                alert(html)
+                var task_count= doc.body.innerHTML;
+                tc.innerText = "当前任务数量" + task_count
+                if (task_count == '0') {
+                    alert("已经开始训练了")
+                } else {
+                    alert("前面还有" + Number(task_count) -1 + "个任务, 已追加到任务列表中")
+                }
             }
         }
-    
+
+        function tasks_finshed_event() {
+            xhr = new XMLHttpRequest();
+            xhr.open("get", "/finished_evevt", true);
+            xhr.onload = function () {
+                alert(xhr.responseText);
+            }
+            xhr.send();
+        }
+
+        function getTrainInfo() {
+            xhr = new XMLHttpRequest();
+            xhr.open("get", "/getinfo", true);
+            xhr.onload = function () {
+                let info = xhr.responseText;
+                if (info) {
+                    output.innerText += output.innerText + info
+                }
+            }
+            xhr.send()
+        }
+
         function uploadFiles(files) {
           var fd = new FormData();
           var ajax = new XMLHttpRequest();
