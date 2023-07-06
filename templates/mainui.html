@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>webui for lora训练</title>
+</head>
+<body>
+    <div class="main">
+        <iframe name="hide_iframe" id="hide_iframe" style="display: none;" title="隐藏页面"></iframe>
+        <div style="border:1px solid #000000">
+            <h4>文件上传</h4>
+            <lo style="list-style: none;">
+                <li>
+                    <label>上传路径</label> <input type="text" value="./kaggle" id="upload_path"/>
+                </li>
+                <li>
+                    <input type="file" multiple id="fileInput"/>
+                    <button id="upload" disabled>上传</button>
+                </li>
+            </lo>
+            
+        </div>
+        <form action="/newTask" method="post" target="hide_iframe">
+            <div style="border:1px solid #000000">
+                <h4>设置训练用模型、图片</h4>
+                <ol>
+                    <li>
+                        <label>底模路径</label> <br/>
+                        <label>pretrained_model_name_or_path</label> <input type="text" name="pretrained_model_name_or_path" value="/kaggle"/>
+                    </li>
+                    <li>
+                        <label>SD2.0模型 2.0模型下 clip_skip 默认无效</label> <br/>
+                        <label>v2</label> <input type="checkbox" name="v2" value="1"/>
+                    </li>
+                    <li>
+                        <label>参数化 v2 非512基础分辨率版本必须使用</label> <br/>
+                        <label>v_parameterization</label> <input type="checkbox" name="v_parameterization" value="1"/>
+                    </li>
+                    <li>
+                        <label>训练数据集路径</label> <br/>
+                        <label>train_data_dir</label> <input type="text" name="train_data_dir" value="/kaggle/train"/>
+                    </li>
+                    <li>
+                        <label>正则数据集化路径</label> <br/>
+                        <label>reg_data_dir</label> <input type="text" name="reg_data_dir" value="/kaggle/reg"/>
+                    </li>
+                    <li>
+                        <label>若需要从已有的 LoRA 模型上继续训练,请填写 LoRA 模型路径</label> <br/>
+                        <label>network_weights</label> <input type="text" name="network_weights" placeholder="/kaggle/xxx.safetensors"/>
+                    </li>
+                    <li>
+                        <label>训练介绍,可以写作者名或者使用触发关键词</label> <br/>
+                        <label>training_comment</label> <input type="text" name="training_comment"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>输出设置</h4>
+                <ol>
+                    <li>
+                        <label>模型保存名称</label> <br/>
+                        <label>output_name</label> <input type="text" name="output_name" value="Demo"/>
+                    </li>
+                    <li>
+                        <label>模型保存格式</label> <br/>
+                        <label>save_model_as</label>
+                        <select name="save_model_as">
+                            <option value="ckpt">ckpt</option>
+                            <option value="pt">pt</option>
+                            <option value="safetensors" selected>safetensors</option>
+                        </select>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>训练相关参数</h4>
+                <ol>
+                    <li>
+                        <label>图片分辨率,宽,高 支持非正方形,但必须是 64 倍数</label> <br/>
+                        <label>resolution</label> <input type="text" name="resolution" value="512,512"/>
+                    </li>
+                    <li>
+                        <label>一次性训练图片批处理数量,根据显卡质量对应调高</label> <br/>
+                        <label>batch_size</label> <input type="number" name="batch_size" value="2"/>
+                    </li>
+                    <li>
+                        <label>最大训练 epoch</label> <br/>
+                        <label>max_train_epochs</label> <input type="number" name="max_train_epochs" value="2"/>
+                    </li>
+                    <li>
+                        <label>每 N 个 epoch 保存一次</label> <br/>
+                        <label>save_every_n_epochs</label> <input type="number" name="save_every_n_epochs" value="1"/>
+                    </li>
+                    <li>
+                        <label>梯度检查,开启后可节约显存,但是速度变慢</label> <br/>
+                        <label>gradient_checkpointing</label> <input type="checkbox" name="gradient_checkpointing" value="1"/>
+                    </li>
+                    <li>
+                        <label>梯度累加数量,变相放大batchsize的倍数</label> <br/>
+                        <label>gradient_accumulation_steps</label> <input type="number" name="gradient_accumulation_steps" value="64"/>
+                    </li>
+                    <li>
+                        <label>常用 4~128,不是越大越好</label> <br/>
+                        <label>network_dim</label> <input type="number" name="network_dim" value="128"/>
+                    </li>
+                    <li>
+                        <label>常用与 network_dim 相同的值或者采用较小的值,如 network_dim的一半 防止下溢 默认值为 1,使用较小的 alpha 需要提升学习率 </label> <br/>
+                        <label>network_alpha</label> <input type="number" name="network_alpha" value="64"/>
+                    </li>
+                    <li>
+                        <label>仅训练 U-Net,开启这个会牺牲效果大幅减少显存使用 6G显存可以开启</label> <br/>
+                        <label>network_train_unet_only</label> <input type="checkbox" name="network_train_unet_only" value="1"/>
+                    </li>
+                    <li>
+                        <label>仅训练 文本编码器</label> <br/>
+                        <label>network_train_text_encoder_only</label> <input type="checkbox" name="network_train_text_encoder_only" value="1"/>
+                    </li>
+                    <li>
+                        <label>在第N步时停止训练文本编码器</label> <br/>
+                        <label>stop_text_encoder_training</label> <input type="number" name="stop_text_encoder_training" value="0"/>
+                    </li>
+                    <li>
+                        <label>设置跑测试用的种子,输入一个prompt和这个种子大概率得到训练图 可以用来试触发关键词</label> <br/>
+                        <label>seed</label> <input type="number" name="seed" value="6666"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>noise | 噪声</h4>
+                <ol>
+                    <li>
+                        <label>帮助SD更好分辨黑白,推荐概念0.06,画风0.1</label> <br/>
+                        <label>noise_offset</label> <input type="number" name="noise_offset" value="0" step="0.01"/>
+                    </li>
+                    <li>
+                        <label>多分辨率噪声扩散次数,推荐6-10,0禁用 </label> <br/>
+                        <label>multires_noise_iterations</label> <input type="number" name="multires_noise_iterations" value="6"/>
+                    </li>
+                    <li>
+                        <label>多分辨率噪声缩放倍数,推荐0.1-0.3,上面关掉的话禁用 </label> <br/>
+                        <label>multires_noise_discount</label> <input type="number" step="0.1" name="multires_noise_discount" value="0.1"/>
+                    </li>
+                </ol>
+            </div>
+            
+            <div style="border:1px solid #000000">
+                <h4>lycoris组件</h4>
+                <ol>
+                    <li>
+                        <label>开启lycoris</label> <br/>
+                        <label>enable_lycoris</label> <input type="checkbox" name="enable_lycoris" value="1"/>
+                    </li>
+                    <li>
+                        <label>卷积 dim,推荐小于32</label> <br/>
+                        <label>conv_dim</label> <input type="number" name="conv_dim" value="16"/>
+                    </li>
+                    <li>
+                        <label>卷积 alpha,推荐1或者0.3</label> <br/>
+                        <label>conv_alpha</label> <input type="number" name="conv_alpha" value="1"/>
+                    </li>
+                    <li>
+                        <label>algo参数,指定训练lycoris模型种类,包括lora(就是locon)、loha、IA3以及lokr、dylora ,5个可选</label> <br/>
+                        <label>algo</label>
+                        <select name="algo">
+                            <option value="lora">lora(就是locon)</option>
+                            <option value="loha">loha</option>
+                            <option value="IA3">IA3</option>
+                            <option value="lokr">lokr</option>
+                            <option value="dylora">dylora</option>
+                        </select>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>dylora组件</h4>
+                <ol>
+                    <li>
+                        <label>开启dylora,和lycoris冲突,只能开一个 </label> <br/>
+                        <label>enable_dylora</label> <input type="checkbox" name="enable_dylora" value="1"/>
+                    </li>
+                    <li>
+                        <label>分割块数单位,最小1也最慢 一般4、8、12、16这几个选</label> <br/>
+                        <label>unit</label> <input type="number" name="unit" value="4"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>Learning rate | 学习率</h4>
+                <ol>
+                    <li>
+                        <label>learning_rate</label> <input type="text" name="learning_rate" value="8.067e-5"/>
+                    </li>
+                    <li>
+                        <label>unet_lr</label> <input type="text" name="unet_lr" value="8.067e-5"/>
+                    </li>
+                    <li>
+                        <label>text_encoder_lr</label> <input type="text" name="text_encoder_lr" value="2.689e-5"/>
+                    </li>
+                    <li>
+                        <label>PyTorch自带6种动态学习率函数 推荐默认cosine_with_restarts或者polynomial,配合输出多个epoch结果更玄学</label> <br/>
+                        <label>lr_scheduler</label>
+                        <select name="lr_scheduler">
+                            <option value="linear">linear</option>
+                            <option value="cosine">cosine</option>
+                            <option value="cosine_with_restarts" selected>cosine_with_restarts</option>
+                            <option value="polynomial">polynomial</option>
+                            <option value="constant">constant</option>
+                            <option value="constant_with_warmup">constant_with_warmup</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label>warmup steps | 学习率预热步数,lr_scheduler 为 constant 或 adafactor 时该值需要设为0 仅在 lr_scheduler 为 constant_with_warmup 时需要填写这个值</label> <br/>
+                        <label>lr_warmup_steps</label> <input type="number" name="lr_warmup_steps" value="0"/>
+                    </li>
+                    <li>
+                        <label>restarts nums | 余弦退火重启次数,仅在 lr_scheduler 为 cosine_with_restarts 时需要填写这个值</label> <br/>
+                        <label>lr_scheduler_num_cycles</label> <input type="number" name="lr_scheduler_num_cycles" value="1"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>优化器部分</h4>
+                <ol>
+                    <li>
+                        <label>优化器</label> <br/>
+                        <label>optimizer_type</label>
+                        <select name="optimizer_type">
+                            <option value="DAdaptation">DAdaptation</option>
+                            <option value="Lion" selected>Lion</option>
+                            <option value="adaFactor">adaFactor</option>
+                            <option value="AdamW">AdamW</option>
+                            <option value="AdamW8bit">AdamW8bit</option>
+                            <option value="SGDNesterov">SGDNesterov</option>
+                            <option value="SGDNesterov8bit">SGDNesterov8bit</option>
+                            <option value="Lion8bit">Lion8bit(速度更快，内存消耗更少)</option>
+                            <option value="DAdaptAdaGrad">DAdaptAdaGrad</option>
+                            <option value="DAdaptAdan">DAdaptAdan(北大最新算法)</option>
+                            <option value="DAdaptSGD">DAdaptSGD</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label>随机打乱tokens</label> <br/>
+                        <label>shuffle_caption</label> <input type="checkbox" name="shuffle_caption" value="1" checked/>
+                    </li>
+                    <li>
+                        <label>在随机打乱 tokens 时,保留前 N 个不变 </label> <br/>
+                        <label>keep_tokens</label> <input type="number" name="keep_tokens" value="5"/>
+                    </li>
+                    <li>
+                        <label>正则化权重,0-1</label> <br/>
+                        <label>prior_loss_weight</label> <input type="number" name="prior_loss_weight" value="0" step="0.1"/>
+                    </li>
+                    <li>
+                        <label>最小信噪比伽马值,减少低step时loss值,让学习效果更好 推荐3-5,5对原模型几乎没有太多影响,3会改变最终结果 修改为0禁用</label> <br/>
+                        <label>min_snr_gamma</label> <input type="number" name="min_snr_gamma" value="5"/>
+                    </li>
+                    <li>
+                        <label>权重打标,默认识别标签权重,语法同webui基础用法 例如(abc), [abc],(abc:1.23),但是不能在括号内加逗号,否则无法识别 一个文件最多75个tokens </label> <br/>
+                        <label>weighted_captions</label> <input type="checkbox" name="weighted_captions" value="1"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>block weights | 分层训练</h4>
+                <ol>
+                    <li>
+                        <label>开启分层训练,和lycoris冲突,只能开一个</label> <br/>
+                        <label>enable_block_weights</label> <input type="checkbox" name="enable_block_weights" value="1"/>
+                    </li>
+                    <li>
+                        <label>12层,需要填写12个数字,0-1.也可以使用函数写法,支持sine, cosine, linear, reverse_linear, zeros,参考写法down_lr_weight=cosine+.25 </label> <br/>
+                        <label>down_lr_weight</label> <input type="text" name="down_lr_weight" value="1,0.2,1,1,0.2,1,1,0.2,1,1,1,1"/>
+                    </li>
+                    <li>
+                        <label>1层,需要填写1个数字,其他同上</label> <br/>
+                        <label>mid_lr_weight</label> <input type="number" name="mid_lr_weight" value="1"/>
+                    </li>
+                    <li>
+                        <label>12层,同上上 </label> <br/>
+                        <label>up_lr_weight</label> <input type="text" name="up_lr_weight" value="1,1,1,1,1,1,1,1,1,1,1,1"/>
+                    </li>
+                    <li>
+                        <label>如果分层权重不超过这个值,那么直接不训练 默认0 </label> <br/>
+                        <label>block_lr_zero_threshold</label> <input type="number" name="block_lr_zero_threshold" value="0" step="0.1"/>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>输出采样图片</h4>
+                <ol>
+                    <li>
+                        <label>开启出图</label> <br/>
+                        <label>enable_sample</label> <input type="checkbox" name="enable_sample" value="1"/>
+                    </li>
+                    <li>
+                        <label>每n个epoch出一次图</label> <br/>
+                        <label>sample_every_n_epochs</label> <input type="number" name="sample_every_n_epochs" value="1"/>
+                    </li>
+                    <li>
+                        <label>prompt</label> <input type="text"/>
+                    </li>
+                    <li>
+                        <label>采样器</label> <br/>
+                        <label>sample_sampler</label>
+                        <select name="sample_sampler">
+                            <option value="ddim">ddim</option>
+                            <option value="pndm">pndm</option>
+                            <option value="heun">heun</option>
+                            <option value="dpmsolver">dpmsolver</option>
+                            <option value="dpmsolver++">dpmsolver++</option>
+                            <option value="dpmsingle">dpmsingle</option>
+                            <option value="k_lms">k_lms</option>
+                            <option value="k_euler">k_euler</option>
+                            <option value="k_euler_a">k_euler_a</option>
+                            <option value="k_dpm_2">k_dpm_2</option>
+                            <option value="k_dpm_2_a">k_dpm_2_a</option>
+                            <option value="euler_a" selected>euler_a</option>
+                        </select>
+                    </li>
+                </ol>
+            </div>
+
+            <div style="border:1px solid #000000">
+                <h4>其他设置</h4>
+                <ol>
+                    <li>
+                        <label>wandb 日志同步</label> <br/>
+                        <label>wandb_api_key</label> <input type="text" name="wandb_api_key"/>
+                    </li>
+                    <li>
+                        <label>arb min resolution | arb 最小分辨率</label> <br/>
+                        <label>min_bucket_reso</label> <input type="number" name="min_bucket_reso" value="256"/>
+                    </li>
+                    <li>
+                        <label>arb max resolution | arb 最大分辨率</label> <br/>
+                        <label>max_bucket_reso</label> <input type="number" name="max_bucket_reso" value="1024"/>
+                    </li>
+                    <li>
+                        <label>vae批处理大小,2-4</label> <br/>
+                        <label>vae_batch_size</label> <input type="number" name="vae_batch_size" value="2"/>
+                    </li>
+                    <li>
+                        <label>clip skip | 玄学 一般用 2</label> <br/>
+                        <label>clip_skip</label> <input type="number" name="clip_skip" value="2"/>
+                    </li>
+                </ol>
+            </div>
+            
+            <div>
+                <h4>抱脸仓库相关</h4>
+                <ol>
+                    <li>
+                        <label>抱脸的tokens</label> <br/>
+                        <label>hugface_key</label> <input type="text" name="hugface_key" />
+                    </li>
+                    <li>
+                        <label>仓库名</label> <br/>
+                        <label>repo_id</label> <input type="text" name="repo_id" placeholder="user_name/xxxx"/>
+                    </li>
+                    <li>
+                        <label>仓库类型</label> <br/>
+                        <label>repo_type</label>
+                        <select name="repo_type">
+                            <option value="model">model</option>
+                            <option value="dataest">dataest</option>
+                        </select>
+                    </li>
+                </ol>
+            </div>
+            <input type="button" value="提交" onclick="submit()" />
+        </form>    
+    </div>
+
+    <script>
+        const filesInput = document.getElementById("fileInput")
+        const upload = document.getElementById("upload")
+        const upload_path = document.getElementById("upload_path")
+        window.onload = function () {
+            let iframe = document.getElementById("hide_iframe")
+            iframe.onload = function () {
+                var doc = iframe.contentWindow.document;
+                var html = doc.body.innerHTML;
+                alert(html)
+            }
+        }
+    
+        function uploadFiles(files) {
+          var fd = new FormData();
+          var ajax = new XMLHttpRequest();
+          for (var i = 0; i < files.length; i++) {
+            fd.append("file", files[i]);
+          }
+          ajax.open("post", "/test/upload", true);
+          ajax.setRequestHeader("path",upload_path.value);
+          ajax.onload = function () {
+            files = null;
+            fileInput.disabled = false;
+            upload.disabled = true;
+          };
+          ajax.send(fd);
+        }
+    
+        filesInput.onchange = evt => {
+          files = evt.target.files;
+          if (files.length === 0) {
+            upload.disabled = true;
+            return
+          }
+          upload.disabled = false;
+        }
+    
+        upload.addEventListener('click', () => {
+          let infos = ''
+          for (var i = 0; i < files.length; i++) {
+            infos += files[i].name + '\n';
+          }
+          if (confirm("确定要上传以下" + files.length + "个文件吗?\n" + infos) == true) {
+            uploadFiles(files);
+            upload.disabled = true;
+            fileInput.disabled = true;
+          }
+        })
+    
+      </script>
+</body>
+</html>
