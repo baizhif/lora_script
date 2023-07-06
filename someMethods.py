@@ -134,44 +134,57 @@ class Tasks:
         self.tasks = []
         self.key = None
         self.isRunning = False
+        self.finished_close = False
+        self.output_info = ''
+        self.temp_info = []
 
     def addTask(self,cmd, train_args):  
-        if len(self.tasks):
-            msg = f"前面任务数量{len(self.tasks)},已追加到列表"
-        else:
-            msg = "已经开始训练了"
         self.tasks.append((cmd,train_args))
         if self.isRunning is False:
             Thread(target=self.runTasks).start()
-        return msg
+        return str(len(self.tasks))
     def runTasks(self):
         try:
             self.isRunning = True
             while len(self.tasks) != 0:
                 p = subprocess.Popen(self.tasks[0][0], shell = True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 self.getOutput(p)
-                print("结束")
                 self.uploadResults(self.tasks[0][1]["hugface_key"],self.tasks[0][1]["output_name"],self.tasks[0][1]["repo_id"],self.tasks[0][1]["repo_type"])
                 self.tasks.remove(self.tasks[0])
+            self.finishedProcess()
             self.isRunning = False
         except Exception as e:
-            print(e,"服务器错误")
+            self.addTemp(str(e)+"服务器错误")
             self.isRunning = False
             self.tasks.remove(self.tasks[0])
 
     def getOutput(self,p):
         for info in iter(p.stdout.readline, b''):
-            print(info.decode('utf-8'),66)
+            self.addTemp(info.decode('utf-8').strip())
 
     def uploadResults(self,key, name, repo_id, repo_type):
         if key:
             def upload_file(file):
                 file_name = os.path.basename(file)
                 response = api.upload_file(path_or_fileobj=file,path_in_repo=f"{name}/{file_name}", repo_id = repo_id,repo_type = repo_type)
-                print(response)
+                self.addTemp(response)
                 os.remove(file)
             from huggingface_hub import login
             login(token=key)
             from huggingface_hub import HfApi
             api = HfApi()
             [upload_file(file) for file in [os.path.join(root, file) for root, folders, files in os.walk("/kaggle/working/output") for file in files]]
+
+    def getTempInfo(self):
+        info = '\n'.join(self.temp_info)
+        self.temp_info.clear()
+        return info
+
+    def addTemp(self,info):
+        self.output_info +=info + "\n"
+        self.temp_info.append(info)
+
+    def finishedProcess(self):
+        if self.finished_close and len(self.tasks) is 0:
+            import sys
+            sys.exit(0)
