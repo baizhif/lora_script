@@ -1,5 +1,6 @@
 import os
 from threading import Thread
+import subprocess
 
 tasks = []
 
@@ -147,8 +148,9 @@ class Tasks:
         try:
             self.isRunning = True
             while len(self.tasks) != 0:
-                staus = os.system(self.tasks[0][0])
-                print("状态",staus)
+                p = subprocess.Popen(self.tasks[0][0], shell = True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                self.getOutput(p)
+                print("结束")
                 self.uploadResults(self.tasks[0][1]["hugface_key"],self.tasks[0][1]["output_name"],self.tasks[0][1]["repo_id"],self.tasks[0][1]["repo_type"])
                 self.tasks.remove(self.tasks[0])
             self.isRunning = False
@@ -156,6 +158,10 @@ class Tasks:
             print(e,"服务器错误")
             self.isRunning = False
             self.tasks.remove(self.tasks[0])
+
+    def getOutput(self,p):
+        for info in iter(p.stdout.readline, b''):
+            print(info.decode('gbk'),66)
 
     def uploadResults(self,key, name, repo_id, repo_type):
         if key:
