@@ -1,6 +1,7 @@
 import os
 from threading import Thread
 import subprocess
+import sys
 
 tasks = []
 
@@ -130,7 +131,7 @@ def parseTrain(train_args:dict):
     return f"conda run -n venv --no-capture-output accelerate launch {' '.join(launch_args)} 'train_network.py' {' '.join((i for i in extra_args if i))}"
 
 class Tasks:
-    def __init__(self) -> None:
+    def __init__(self,pid) -> None:
         self.tasks = []
         self.key = None
         self.isRunning = False
@@ -185,6 +186,8 @@ class Tasks:
         self.temp_info.append(info)
 
     def finishedProcess(self):
-        if self.finished_close and len(self.tasks) is 0:
-            import sys
-            sys.exit(0)
+        if self.finished_close and len(self.tasks) == 0:
+            if os.name == 'nt':
+                os.system(f"taskkill /pid {os.getpid()} /f /t")
+            elif os.name == 'posix':
+                os.system(f"kill -KILL {os.getpid()}")
