@@ -131,7 +131,7 @@ def parseTrain(train_args:dict):
     return f"conda run -n venv --no-capture-output accelerate launch {' '.join(launch_args)} 'train_network.py' {' '.join((i for i in extra_args if i))}"
 
 class Tasks:
-    def __init__(self,pid) -> None:
+    def __init__(self) -> None:
         self.tasks = []
         self.key = None
         self.isRunning = False
@@ -164,7 +164,7 @@ class Tasks:
             self.addTemp(info.decode('utf-8').strip())
 
     def uploadResults(self,key, name, repo_id, repo_type):
-        if key:
+        if key and repo_id:
             def upload_file(file):
                 file_name = os.path.basename(file)
                 response = api.upload_file(path_or_fileobj=file,path_in_repo=f"{name}/{file_name}", repo_id = repo_id,repo_type = repo_type)
