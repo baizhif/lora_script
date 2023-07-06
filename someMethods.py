@@ -134,12 +134,12 @@ class Tasks:
         self.key = None
         self.isRunning = False
 
-    def addTask(self,cmd):  
+    def addTask(self,cmd, train_args):  
         if len(self.tasks):
             msg = f"前面任务数量{len(self.tasks)},已追加到列表"
         else:
             msg = "已经开始训练了"
-        self.tasks.append(cmd)
+        self.tasks.append((cmd,train_args))
         if self.isRunning is False:
             Thread(target=self.runTasks).start()
         return msg
@@ -147,10 +147,9 @@ class Tasks:
         try:
             self.isRunning = True
             while len(self.tasks) != 0:
-                staus = os.system(self.tasks[0])
+                staus = os.system(self.tasks[0][0])
                 print("状态",staus)
-                print(self.tasks[0])
-                self.uploadResults(self.tasks[0]["hugface_key"],self.tasks[0]["output_name"],self.tasks[0]["repo_id"],self.tasks[0]["repo_type"])
+                self.uploadResults(self.tasks[0][1]["hugface_key"],self.tasks[0][1]["output_name"],self.tasks[0][1]["repo_id"],self.tasks[0][1]["repo_type"])
                 self.tasks.remove(self.tasks[0])
             self.isRunning = False
         except Exception as e:
