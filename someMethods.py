@@ -6,7 +6,8 @@ tasks = []
 def parseTrain(train_args:dict):
     
     if os.path.exists(train_args["pretrained_model_name_or_path"]) is False:
-        raise FileNotFoundError
+        # raise FileNotFoundError
+        pass
     extra_args=[
         '--enable_bucket',
         '--output_dir="/kaggle/working/output"',
@@ -108,8 +109,8 @@ def parseTrain(train_args:dict):
     if train_args["optimizer_type"] == "AdamW8bit":
         extra_args.append("--use_8bit_adam")
     # if train_args["network_weights"] 在已有的lora上训练
-    if os.path.exists(train_args["reg_path"]):
-        extra_args.append(f'--reg_data_dir={train_args["reg_path"]}')
+    if os.path.exists(train_args["reg_data_dir"]):
+        extra_args.append(f'--reg_data_dir={train_args["reg_data_dir"]}')
         if extra_args["prior_loss_weight"] !='0':
             extra_args.append(f"--prior_loss_weight={train_args['prior_loss_weight']}")
     if train_args["keep_tokens"] != '0':
@@ -154,6 +155,7 @@ class Tasks:
         except Exception as e:
             print(e,"服务器错误")
             self.isRunning = False
+            self.tasks.remove(self.tasks[0])
 
     def uploadResults(self,key, name, repo_id, repo_type):
         if key:
